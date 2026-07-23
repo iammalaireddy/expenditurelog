@@ -12,5 +12,15 @@ export const expenses = pgTable('expenses', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+export const salaries = pgTable('salaries', {
+  id: serial('id').primaryKey(),
+  month: text('month').notNull().unique(),
+  baseSalaryCents: integer('base_salary_cents').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export type Expense = typeof expenses.$inferSelect
 export type NewExpense = typeof expenses.$inferInsert
+export type Salary = typeof salaries.$inferSelect
+export type NewSalary = typeof salaries.$inferInsert
