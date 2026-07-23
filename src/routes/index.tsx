@@ -69,7 +69,7 @@ const categoryColors: Record<string, string> = {
 const money = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'KWD',
-  maximumFractionDigits: 0,
+  maximumFractionDigits: 3,
 })
 
 function toMonthKey(date: Date) {
