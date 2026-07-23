@@ -19,6 +19,8 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { PasswordModal } from '../components/PasswordModal'
+import '../styles/password-modal.css'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -112,6 +114,8 @@ function emptySalaryForm(month: string): SalaryForm {
 }
 
 function Home() {
+  const [isUnlocked, setIsUnlocked] = useState(false)
+  
   const months = useMemo(() => {
     const start = new Date()
     start.setDate(1)
@@ -134,6 +138,8 @@ function Home() {
   const [viewMode, setViewMode] = useState<'expenses' | 'salary'>('expenses')
 
   useEffect(() => {
+    if (!isUnlocked) return
+    
     const loadData = async () => {
       try {
         const [expensesRes, salariesRes] = await Promise.all([
@@ -157,7 +163,11 @@ function Home() {
       }
     }
     void loadData()
-  }, [months])
+  }, [months, isUnlocked])
+
+  if (!isUnlocked) {
+    return <PasswordModal onUnlock={() => setIsUnlocked(true)} />
+  }
 
   const selectedExpenses = expenses.filter((expense) => expense.month === selectedMonth)
   const selectedPlanned = selectedExpenses.reduce((sum, expense) => sum + expense.plannedCents, 0)
