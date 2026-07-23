@@ -50,6 +50,7 @@ const categories = [
   'Healthcare',
   'Subscriptions',
   'Other',
+  'Food',
 ]
 
 const categoryColors: Record<string, string> = {
@@ -64,6 +65,7 @@ const categoryColors: Record<string, string> = {
   Healthcare: '#b04b4b',
   Subscriptions: '#68737d',
   Other: '#8a765d',
+  Food: '#F59E0B',
 }
 
 const money = new Intl.NumberFormat('en-US', {
