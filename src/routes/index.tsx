@@ -68,7 +68,7 @@ const categoryColors: Record<string, string> = {
 
 const money = new Intl.NumberFormat('en-US', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'KWD',
   maximumFractionDigits: 0,
 })
 
