@@ -1,6 +1,7 @@
-import { drizzle } from 'drizzle-orm/d1'
-import * as schema from './schema.js'
+import { defineConfig } from 'drizzle-kit'
 
-export function createDb(d1: D1Database) {
-  return drizzle(d1, { schema })
-}
+export default defineConfig({
+  dialect: 'sqlite',
+  schema: './db/schema.ts',
+  out: './drizzle',
+})
