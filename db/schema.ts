@@ -1,23 +1,23 @@
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-export const expenses = pgTable('expenses', {
-  id: serial('id').primaryKey(),
+export const expenses = sqliteTable('expenses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   month: text('month').notNull(),
   category: text('category').notNull(),
   name: text('name').notNull(),
   plannedCents: integer('planned_cents').notNull().default(0),
   actualCents: integer('actual_cents').notNull().default(0),
   notes: text('notes').notNull().default(''),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 })
 
-export const salaries = pgTable('salaries', {
-  id: serial('id').primaryKey(),
+export const salaries = sqliteTable('salaries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   month: text('month').notNull().unique(),
   baseSalaryCents: integer('base_salary_cents').notNull().default(0),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 })
 
 export type Expense = typeof expenses.$inferSelect
