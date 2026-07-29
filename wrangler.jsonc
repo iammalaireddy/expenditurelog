@@ -12,7 +12,7 @@
       "binding": "DB",
       "database_name": "threefold-expense-planner-db",
       // Replace with the ID printed by `wrangler d1 create threefold-expense-planner-db`
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "bdc001f1-89f4-4929-942d-4842680b1430",
       "migrations_dir": "migrations"
     }
   ]
