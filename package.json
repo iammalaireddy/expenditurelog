@@ -4,7 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "db:migrate:local": "wrangler d1 migrations apply threefold-expense-planner-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply threefold-expense-planner-db --remote"
   },
   "dependencies": {
     
@@ -35,6 +40,7 @@
     "rimraf": "6.1.3",
     "tailwindcss": "4.2.2",
     "typescript": "5.9.3",
-    "vite": "7.3.3"
+    "vite": "7.3.3",
+    "wrangler": "latest"
   }
 }

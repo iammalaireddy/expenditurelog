@@ -16,8 +16,8 @@ Threefold is a household financial tracker for planning and recording expenses a
 - TanStack Start with React 19 and TypeScript
 - TanStack Router file-based routes
 - Tailwind CSS 4 and custom CSS
-- Netlify Database managed Postgres
-- Drizzle ORM and generated database migrations
+- Cloudflare D1 (SQLite) via Drizzle ORM
+- Deployed as a Cloudflare Worker
 - Lucide React icons
 
 ## Local Development
@@ -28,19 +28,61 @@ Install dependencies:
 pnpm install
 ```
 
-Run the project with Netlify’s local environment so the database-backed API is available:
+Generate TypeScript types for your Cloudflare bindings (reads `wrangler.jsonc`):
 
 ```bash
-netlify dev --port 8889
+pnpm cf-typegen
 ```
 
-Open `http://localhost:8889` in a browser.
+Apply migrations to your local D1 database:
+
+```bash
+pnpm db:migrate:local
+```
+
+Run the dev server (the Cloudflare Vite plugin simulates the Worker + D1 binding locally):
+
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000` in a browser.
+
+## Deploying to Cloudflare
+
+1. Log in to Cloudflare (one time):
+
+   ```bash
+   npx wrangler login
+   ```
+
+2. Create the D1 database:
+
+   ```bash
+   npx wrangler d1 create threefold-expense-planner-db
+   ```
+
+   Copy the `database_id` it prints and paste it into `wrangler.jsonc` under `d1_databases[0].database_id`.
+
+3. Apply migrations to the remote (production) database:
+
+   ```bash
+   pnpm db:migrate:remote
+   ```
+
+4. Build and deploy:
+
+   ```bash
+   pnpm deploy
+   ```
+
+   This runs `vite build` and then `wrangler deploy`, publishing to a `*.workers.dev` subdomain (or a custom domain if you've configured `routes` in `wrangler.jsonc`).
 
 ## Database
 
-The schema is defined in `db/schema.ts`. Netlify provisions the database on first connection and applies migrations from `netlify/database/migrations/` during deployment.
+The schema is defined in `db/schema.ts`. Migrations live as plain SQL files in `migrations/` and are applied with `wrangler d1 migrations apply`.
 
-After changing the schema, generate a migration:
+After changing the schema, generate a new migration:
 
 ```bash
 npx drizzle-kit generate --name describe_change
