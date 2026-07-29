@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
-  ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
   Check,

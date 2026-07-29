@@ -39,11 +39,14 @@ export const Route = createFileRoute('/api/salaries')({
           return Response.json({ error: 'Enter a valid month and salary amount.' }, { status: 400 })
         }
 
+        const now = new Date()
         const [created] = await db
           .insert(salaries)
           .values({
             month: input.month,
             baseSalaryCents: input.baseSalaryCents,
+            createdAt: now,
+            updatedAt: now,
           })
           .returning()
 

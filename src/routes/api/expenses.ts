@@ -50,6 +50,7 @@ export const Route = createFileRoute('/api/expenses')({
           return Response.json({ error: 'Enter a valid month, name, category, and amounts.' }, { status: 400 })
         }
 
+        const now = new Date()
         const [created] = await db
           .insert(expenses)
           .values({
@@ -59,6 +60,8 @@ export const Route = createFileRoute('/api/expenses')({
             plannedCents: input.plannedCents,
             actualCents: input.actualCents,
             notes: input.notes?.trim() ?? '',
+            createdAt: now,
+            updatedAt: now,
           })
           .returning()
 

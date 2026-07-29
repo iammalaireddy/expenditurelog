@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiExpensesRouteImport } from './routes/api/expenses'
+import { Route as ApiSalariesRouteImport } from './routes/api/salaries'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const ApiExpensesRoute = ApiExpensesRouteImport.update({
   path: '/api/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSalariesRoute = ApiSalariesRouteImport.update({
+  id: '/api/salaries',
+  path: '/api/salaries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/expenses': typeof ApiExpensesRoute
+  '/api/salaries': typeof ApiSalariesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/expenses': typeof ApiExpensesRoute
+  '/api/salaries': typeof ApiSalariesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/expenses': typeof ApiExpensesRoute
+  '/api/salaries': typeof ApiSalariesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/expenses'
+  fullPaths: '/' | '/api/expenses' | '/api/salaries'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/expenses'
-  id: '__root__' | '/' | '/api/expenses'
+  to: '/' | '/api/expenses' | '/api/salaries'
+  id: '__root__' | '/' | '/api/expenses' | '/api/salaries'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiExpensesRoute: typeof ApiExpensesRoute
+  ApiSalariesRoute: typeof ApiSalariesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/salaries': {
+      id: '/api/salaries'
+      path: '/api/salaries'
+      fullPath: '/api/salaries'
+      preLoaderRoute: typeof ApiSalariesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiExpensesRoute: ApiExpensesRoute,
+  ApiSalariesRoute: ApiSalariesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
