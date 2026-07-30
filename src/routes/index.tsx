@@ -57,7 +57,7 @@ const categories = [
   'Transport',
   'Grocery',
   'Shopping',
-  'Activities',
+  'Entertainment',
   'Healthcare',
   'Subscriptions',
   'Food',
@@ -72,11 +72,15 @@ const categoryColors: Record<string, string> = {
   Transport: '#387780',
   Grocery: '#558b6e',
   Shopping: '#b55478',
-  Activities: '#4f6d9a',
+  Entertainment: '#4f6d9a',
   Healthcare: '#b04b4b',
   Subscriptions: '#68737d',
   Food: '#F59E0B',
   Other: '#8a765d',
+}
+
+function normalizeCategory(category: string) {
+  return category === 'Activities' ? 'Entertainment' : category
 }
 
 const money = new Intl.NumberFormat('en-US', {
@@ -141,7 +145,10 @@ function Home() {
         ])
         if (!expensesRes.ok) throw new Error('Unable to load your expense plan.')
         if (!salariesRes.ok) throw new Error('Unable to load salaries.')
-        const expensesData = (await expensesRes.json()) as Expense[]
+        const expensesData = ((await expensesRes.json()) as Expense[]).map((expense) => ({
+          ...expense,
+          category: normalizeCategory(expense.category),
+        }))
         const salariesData = (await salariesRes.json()) as Salary[]
         setExpenses(expensesData)
         const salariesMap: Record<string, Salary> = {}
