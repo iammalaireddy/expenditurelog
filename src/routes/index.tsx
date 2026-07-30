@@ -103,7 +103,7 @@ function monthLabel(month: string, format: 'short' | 'long' = 'long') {
 
 function amountToCents(value: string) {
   const amount = Number(value || 0)
-  return Number.isFinite(amount) ? Math.max(0, Math.round(amount * 100)) : 0
+  return Number.isFinite(amount) ? Math.max(0, Math.round(amount * 1000)) : 0
 }
 
 function emptyForm(month: string): ExpenseForm {
