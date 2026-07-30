@@ -200,8 +200,8 @@ function Home() {
       month: expense.month,
       category: expense.category,
       name: expense.name,
-      planned: (expense.plannedCents / 100).toString(),
-      actual: (expense.actualCents / 100).toString(),
+      planned: (expense.plannedCents / 1000).toString(),
+      actual: (expense.actualCents / 1000).toString(),
       notes: expense.notes,
     })
     setError('')
@@ -213,7 +213,7 @@ function Home() {
     setSalaryForm({
       id: currentSalary?.id,
       month: selectedMonth,
-      baseSalary: currentSalary ? (currentSalary.baseSalaryCents / 100).toString() : '',
+      baseSalary: currentSalary ? (currentSalary.baseSalaryCents / 1000).toString() : '',
     })
     setError('')
     setSalaryDrawerOpen(true)
@@ -337,7 +337,7 @@ function Home() {
         </div>
         <div className="hero-summary">
           <div className="summary-label">{viewMode === 'expenses' ? '36-month outlook' : 'Rolling salary'}</div>
-          <div className="summary-total">{money.format((viewMode === 'expenses' ? rollingPlanned : Object.values(salaries).reduce((sum, s) => sum + s.baseSalaryCents, 0)) / 100)}</div>
+          <div className="summary-total">{money.format((viewMode === 'expenses' ? rollingPlanned : Object.values(salaries).reduce((sum, s) => sum + s.baseSalaryCents, 0)) / 1000)}</div>
           <div className="summary-meta"><span>{viewMode === 'expenses' ? 'planned' : 'total'}</span><span>{money.format(rollingActual / 100)} recorded</span></div>
           <div className="mini-lines">
             {months.slice(0, 12).map((month) => {
@@ -387,15 +387,15 @@ function Home() {
 
           {viewMode === 'salary' ? (
             <div className="stat-grid">
-              <article className="stat-card terracotta"><div className="stat-icon"><CircleDollarSign /></div><span>Base Salary</span><strong>{money.format(selectedSalary / 100)}</strong><small>{selectedSalary ? 'This month' : 'Not set'}</small></article>
+              <article className="stat-card terracotta"><div className="stat-icon"><CircleDollarSign /></div><span>Base Salary</span><strong>{money.format(selectedSalary / 1000)}</strong><small>{selectedSalary ? 'This month' : 'Not set'}</small></article>
               <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>Total Expenses</span><strong>{money.format(selectedActual / 100)}</strong><small>{selectedActual <= selectedSalary ? 'Within budget' : 'Over budget'}</small></article>
               <article className={`stat-card ${selectedBalance >= 0 ? 'ink' : 'salmon'}`}><div className="stat-icon"><WalletCards /></div><span>Remaining Balance</span><strong>{money.format(selectedBalance / 100)}</strong><small>{selectedBalance >= 0 ? 'Available' : 'Deficit'}</small></article>
             </div>
           ) : (
             <div className="stat-grid">
               <article className="stat-card terracotta"><div className="stat-icon"><WalletCards /></div><span>Planned</span><strong>{money.format(selectedPlanned / 100)}</strong><small>{selectedExpenses.length} items</small></article>
-              <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>Recorded</span><strong>{money.format(selectedActual / 100)}</strong><small>{selectedActual <= selectedPlanned ? 'On track' : 'Over budget'}</small></article>
-              <article className="stat-card ink"><div className="stat-icon"><CircleDollarSign /></div><span>Remaining</span><strong>{money.format((selectedPlanned - selectedActual) / 100)}</strong><small>{selectedPlanned ? 'Of planned' : 'Plan first'}</small></article>
+              <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>Recorded</span><strong>{money.format(selectedActual / 1000)}</strong><small>{selectedActual <= selectedPlanned ? 'On track' : 'Over budget'}</small></article>
+              <article className="stat-card ink"><div className="stat-icon"><CircleDollarSign /></div><span>Remaining</span><strong>{money.format((selectedPlanned - selectedActual) / 1000)}</strong><small>{selectedPlanned ? 'Of planned' : 'Plan first'}</small></article>
             </div>
           )}
 
@@ -421,7 +421,7 @@ function Home() {
             </article>
           ) : (
             <article className="ledger-card">
-              <div className="ledger-header"><div><span className="section-kicker">MONTHLY LEDGER</span><h3>Expense details</h3></div><div className="ledger-total">Actual <strong>{money.format(selectedActual / 100)}</strong></div></div>
+              <div className="ledger-header"><div><span className="section-kicker">MONTHLY LEDGER</span><h3>Expense details</h3></div><div className="ledger-total">Actual <strong>{money.format(selectedActual / 1000)}</strong></div></div>
               {loading ? (
                 <div className="state-panel"><LoaderCircle className="spinner" /><h3>Opening your ledger</h3><p>Gathering the next 36 months.</p></div>
               ) : selectedExpenses.length === 0 ? (
@@ -435,7 +435,7 @@ function Home() {
                         <div className="category-dot" style={{ background: categoryColors[expense.category] ?? categoryColors.Other }} />
                         <div className="expense-name"><strong>{expense.name}</strong><span>{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
                         <div className="expense-number"><span>Planned</span><strong>{money.format(expense.plannedCents / 100)}</strong></div>
-                        <div className="expense-number"><span>Actual</span><strong>{money.format(expense.actualCents / 100)}</strong></div>
+                        <div className="expense-number"><span>Actual</span><strong>{money.format(expense.actualCents / 1000)}</strong></div>
                         <div className={difference >= 0 ? 'variance good' : 'variance over'}>{difference >= 0 ? <Check size={14} /> : <ArrowUpRight size={14} />}{difference >= 0 ? `${money.format(difference / 100)}` : `${money.format(Math.abs(difference) / 100)}`}</div>
                         <div className="row-actions"><button aria-label={`Edit ${expense.name}`} onClick={() => openEditExpense(expense)}><Edit3 size={16} /></button><button aria-label={`Delete ${expense.name}`} onClick={() => void deleteExpense(expense.id)}><Trash2 size={16} /></button></div>
                       </div>
@@ -451,7 +451,7 @@ function Home() {
           <article className="progress-card">
             <span className="section-kicker">{viewMode === 'salary' ? 'SALARY PACE' : 'MONTHLY PACE'}</span><div className="progress-heading"><h3>{Math.round(viewMode === 'salary' ? salaryRatio : actualRatio)}%</h3><span>{viewMode === 'salary' ? 'used' : 'used'}</span></div>
             <div className="progress-track"><span style={{ width: `${viewMode === 'salary' ? salaryRatio : actualRatio}%` }} /></div>
-            <p>{viewMode === 'salary' ? (selectedSalary ? `${money.format(Math.abs(selectedBalance) / 100)} ${selectedBalance >= 0 ? 'remaining' : 'over your salary'}.` : 'Set your base salary above.') : (selectedPlanned ? `${money.format(Math.abs(selectedPlanned - selectedActual) / 100)} ${selectedActual <= selectedPlanned ? 'still available' : 'above your plan'}.` : 'Add planned...')}</p>
+            <p>{viewMode === 'salary' ? (selectedSalary ? `${money.format(Math.abs(selectedBalance) / 1000)} ${selectedBalance >= 0 ? 'remaining' : 'over your salary'}.` : 'Set your base salary above.') : (selectedPlanned ? `${money.format(Math.abs(selectedPlanned - selectedActual) / 100)} ${selectedActual <= selectedPlanned ? 'still available' : 'above your plan'}.` : 'Add planned...')}</p>
           </article>
 
           <article className="category-card">
@@ -475,7 +475,7 @@ function Home() {
               <label>Month<select value={form.month} onChange={(event) => setForm({ ...form, month: event.target.value })}>{months.map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
               <label>Expense name<input autoFocus placeholder="e.g. Apartment rent" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
               <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
-              <div className="amount-grid"><label>Planned amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.planned} onChange={(event) => setForm({ ...form, planned: event.target.value })} /></div></label><label>Actual amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.01" placeholder="0.00" value={form.actual} onChange={(event) => setForm({ ...form, actual: event.target.value })} /></div></label></div>
+              <div className="amount-grid"><label>Planned amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.planned} onChange={(event) => setForm({ ...form, planned: event.target.value })} /></div></label><label>Actual amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.actual} onChange={(event) => setForm({ ...form, actual: event.target.value })} /></div></label></div>
               <label>Notes <span className="optional">Optional</span><textarea rows={3} placeholder="Payment date, reminder, or detail" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
               {error && <div className="form-error">{error}</div>}
               <div className="drawer-actions"><button type="button" className="outline-button" onClick={() => setDrawerOpen(false)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? <LoaderCircle className="spinner" /> : 'Save expense'}</button></div>
