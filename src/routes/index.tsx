@@ -1,8 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
-  ArrowUpRight,
   CalendarDays,
-  Check,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
@@ -26,8 +24,7 @@ type Expense = {
   month: string
   category: string
   name: string
-  plannedCents: number
-  actualCents: number
+  amountCents: number
   notes: string
 }
 
@@ -37,10 +34,9 @@ type Salary = {
   baseSalaryCents: number
 }
 
-type ExpenseForm = Omit<Expense, 'id' | 'plannedCents' | 'actualCents'> & {
+type ExpenseForm = Omit<Expense, 'id' | 'amountCents'> & {
   id?: number
-  planned: string
-  actual: string
+  amount: string
 }
 
 type SalaryForm = {
@@ -86,6 +82,7 @@ function normalizeCategory(category: string) {
 const money = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'KWD',
+  minimumFractionDigits: 3,
   maximumFractionDigits: 3,
 })
 
@@ -101,13 +98,13 @@ function monthLabel(month: string, format: 'short' | 'long' = 'long') {
   }).format(new Date(year, monthNumber - 1, 1))
 }
 
-function amountToCents(value: string) {
+function amountToFils(value: string) {
   const amount = Number(value || 0)
   return Number.isFinite(amount) ? Math.max(0, Math.round(amount * 1000)) : 0
 }
 
 function emptyForm(month: string): ExpenseForm {
-  return { month, category: 'Rent', name: '', planned: '', actual: '', notes: '' }
+  return { month, category: 'Rent', name: '', amount: '', notes: '' }
 }
 
 function emptySalaryForm(month: string): SalaryForm {
@@ -116,20 +113,20 @@ function emptySalaryForm(month: string): SalaryForm {
 
 function Home() {
   const months = useMemo(() => {
-  const start = new Date()
-  start.setDate(1)
-  start.setMonth(start.getMonth() - 24)
-
-  return Array.from({ length: 60 }, (_, index) => {
-    const date = new Date(start.getFullYear(), start.getMonth() + index, 1)
-    return toMonthKey(date)
-  })
-}, [])
-  const [selectedMonth, setSelectedMonth] = useState('')
+    const start = new Date()
+    start.setDate(1)
+    start.setMonth(start.getMonth() - 1)
+    return Array.from({ length: 36 }, (_, index) => {
+      const date = new Date(start.getFullYear(), start.getMonth() + index, 1)
+      return toMonthKey(date)
+    })
+  }, [])
+  const currentMonth = months[1]
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [salaries, setSalaries] = useState<Record<string, Salary>>({})
-  const [form, setForm] = useState<ExpenseForm>(() => emptyForm(months[0]))
-  const [salaryForm, setSalaryForm] = useState<SalaryForm>(() => emptySalaryForm(months[0]))
+  const [form, setForm] = useState<ExpenseForm>(() => emptyForm(currentMonth))
+  const [salaryForm, setSalaryForm] = useState<SalaryForm>(() => emptySalaryForm(currentMonth))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [salaryDrawerOpen, setSalaryDrawerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -142,9 +139,9 @@ function Home() {
     const loadData = async () => {
       try {
         const [expensesRes, salariesRes] = await Promise.all([
-  fetch(`/api/expenses?start=${months[0]}&end=${months[months.length - 1]}`),
-  fetch(`/api/salaries?start=${months[0]}&end=${months[months.length - 1]}`),
-])
+          fetch(`/api/expenses?start=${months[0]}&end=${months[35]}`),
+          fetch(`/api/salaries?start=${months[0]}&end=${months[35]}`),
+        ])
         if (!expensesRes.ok) throw new Error('Unable to load your expense plan.')
         if (!salariesRes.ok) throw new Error('Unable to load salaries.')
         const expensesData = ((await expensesRes.json()) as Expense[]).map((expense) => ({
@@ -166,29 +163,14 @@ function Home() {
     }
     void loadData()
   }, [months])
-useEffect(() => {
-  if (!expenses.length || selectedMonth) return
 
-  const latestMonth = [...new Set(expenses.map((e) => e.month))]
-    .sort()
-    .pop()
-
-  if (latestMonth) {
-    setSelectedMonth(latestMonth)
-    setForm(emptyForm(latestMonth))
-    setSalaryForm(emptySalaryForm(latestMonth))
-  }
-}, [expenses, selectedMonth])
   const selectedExpenses = expenses.filter((expense) => expense.month === selectedMonth)
-  const selectedPlanned = selectedExpenses.reduce((sum, expense) => sum + expense.plannedCents, 0)
-  const selectedActual = selectedExpenses.reduce((sum, expense) => sum + expense.actualCents, 0)
+  const selectedAmount = selectedExpenses.reduce((sum, expense) => sum + expense.amountCents, 0)
   const selectedSalary = salaries[selectedMonth]?.baseSalaryCents ?? 0
-  const selectedBalance = selectedSalary - selectedActual
-  const rollingPlanned = expenses.reduce((sum, expense) => sum + expense.plannedCents, 0)
-  const rollingActual = expenses.reduce((sum, expense) => sum + expense.actualCents, 0)
+  const selectedBalance = selectedSalary - selectedAmount
+  const rollingAmount = expenses.reduce((sum, expense) => sum + expense.amountCents, 0)
   const selectedIndex = months.indexOf(selectedMonth)
-  const actualRatio = selectedPlanned ? Math.min((selectedActual / selectedPlanned) * 100, 100) : 0
-  const salaryRatio = selectedSalary ? Math.min((selectedActual / selectedSalary) * 100, 100) : 0
+  const salaryRatio = selectedSalary ? Math.min((selectedAmount / selectedSalary) * 100, 100) : 0
 
   const categoryTotals = useMemo(() => {
     return categories
@@ -196,7 +178,7 @@ useEffect(() => {
         category,
         value: selectedExpenses
           .filter((expense) => expense.category === category)
-          .reduce((sum, expense) => sum + expense.actualCents, 0),
+          .reduce((sum, expense) => sum + expense.amountCents, 0),
       }))
       .filter((item) => item.value > 0)
       .sort((left, right) => right.value - left.value)
@@ -214,8 +196,7 @@ useEffect(() => {
       month: expense.month,
       category: expense.category,
       name: expense.name,
-      planned: (expense.plannedCents / 1000).toString(),
-      actual: (expense.actualCents / 1000).toString(),
+      amount: (expense.amountCents / 1000).toString(),
       notes: expense.notes,
     })
     setError('')
@@ -242,7 +223,7 @@ useEffect(() => {
 
     setSavingSalary(true)
     setError('')
-    const baseSalaryCents = amountToCents(salaryForm.baseSalary)
+    const baseSalaryCents = amountToFils(salaryForm.baseSalary)
     const payload = {
       id: salaryForm.id,
       month: salaryForm.month,
@@ -285,8 +266,7 @@ useEffect(() => {
       month: form.month,
       category: form.category,
       name: form.name,
-      plannedCents: amountToCents(form.planned),
-      actualCents: amountToCents(form.actual),
+      amountCents: amountToFils(form.amount),
       notes: form.notes,
     }
 
@@ -351,16 +331,16 @@ useEffect(() => {
         </div>
         <div className="hero-summary">
           <div className="summary-label">{viewMode === 'expenses' ? '36-month outlook' : 'Rolling salary'}</div>
-          <div className="summary-total">{money.format((viewMode === 'expenses' ? rollingPlanned : Object.values(salaries).reduce((sum, s) => sum + s.baseSalaryCents, 0)) / 1000)}</div>
-          <div className="summary-meta"><span>{viewMode === 'expenses' ? 'planned' : 'total'}</span><span>{money.format(rollingActual / 100)} recorded</span></div>
+          <div className="summary-total">{money.format((viewMode === 'expenses' ? rollingAmount : Object.values(salaries).reduce((sum, s) => sum + s.baseSalaryCents, 0)) / 1000)}</div>
+          <div className="summary-meta"><span>{viewMode === 'expenses' ? `${expenses.length} items` : 'total salary'}</span><span>{money.format(rollingAmount / 1000)} recorded</span></div>
           <div className="mini-lines">
             {months.slice(0, 12).map((month) => {
               const total = viewMode === 'expenses'
-                ? expenses.filter((expense) => expense.month === month).reduce((sum, expense) => sum + expense.plannedCents, 0)
+                ? expenses.filter((expense) => expense.month === month).reduce((sum, expense) => sum + expense.amountCents, 0)
                 : salaries[month]?.baseSalaryCents ?? 0
               const max = Math.max(...months.map((candidate) => (
                 viewMode === 'expenses'
-                  ? expenses.filter((expense) => expense.month === candidate).reduce((sum, expense) => sum + expense.plannedCents, 0)
+                  ? expenses.filter((expense) => expense.month === candidate).reduce((sum, expense) => sum + expense.amountCents, 0)
                   : salaries[candidate]?.baseSalaryCents ?? 0
               )), 1)
               return <span key={month} style={{ height: `${Math.max(8, (total / max) * 100)}%` }} />
@@ -372,15 +352,15 @@ useEffect(() => {
       <section className="month-navigator">
         <button aria-label="Previous month" disabled={selectedIndex === 0} onClick={() => moveMonth(-1)}><ChevronLeft /></button>
         <div className="month-track">
-          {months.map((month, index) => {
-            const expenseTotal = expenses.filter((expense) => expense.month === month).reduce((sum, expense) => sum + expense.plannedCents, 0)
+          {months.map((month) => {
+            const expenseTotal = expenses.filter((expense) => expense.month === month).reduce((sum, expense) => sum + expense.amountCents, 0)
             const salaryTotal = salaries[month]?.baseSalaryCents ?? 0
             const total = viewMode === 'expenses' ? expenseTotal : salaryTotal
             return (
               <button key={month} className={selectedMonth === month ? 'month-chip active' : 'month-chip'} onClick={() => setSelectedMonth(month)}>
-                <span>{index === 0 ? 'NOW' : month.slice(0, 4)}</span>
+                <span>{month === currentMonth ? 'NOW' : month.slice(0, 4)}</span>
                 <strong>{monthLabel(month).split(' ')[0].slice(0, 3)}</strong>
-                <small>{total ? money.format(total / 100) : '—'}</small>
+                <small>{total ? money.format(total / 1000) : '—'}</small>
               </button>
             )
           })}
@@ -402,20 +382,20 @@ useEffect(() => {
           {viewMode === 'salary' ? (
             <div className="stat-grid">
               <article className="stat-card terracotta"><div className="stat-icon"><CircleDollarSign /></div><span>Base Salary</span><strong>{money.format(selectedSalary / 1000)}</strong><small>{selectedSalary ? 'This month' : 'Not set'}</small></article>
-              <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>Total Expenses</span><strong>{money.format(selectedActual / 100)}</strong><small>{selectedActual <= selectedSalary ? 'Within budget' : 'Over budget'}</small></article>
-              <article className={`stat-card ${selectedBalance >= 0 ? 'ink' : 'salmon'}`}><div className="stat-icon"><WalletCards /></div><span>Remaining Balance</span><strong>{money.format(selectedBalance / 100)}</strong><small>{selectedBalance >= 0 ? 'Available' : 'Deficit'}</small></article>
+              <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>Total Expenses</span><strong>{money.format(selectedAmount / 1000)}</strong><small>{selectedAmount <= selectedSalary ? 'Within budget' : 'Over budget'}</small></article>
+              <article className={`stat-card ${selectedBalance >= 0 ? 'ink' : 'salmon'}`}><div className="stat-icon"><WalletCards /></div><span>Remaining Balance</span><strong>{money.format(selectedBalance / 1000)}</strong><small>{selectedBalance >= 0 ? 'Available' : 'Deficit'}</small></article>
             </div>
           ) : (
             <div className="stat-grid">
-              <article className="stat-card terracotta"><div className="stat-icon"><WalletCards /></div><span>Planned</span><strong>{money.format(selectedPlanned / 100)}</strong><small>{selectedExpenses.length} items</small></article>
-              <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>Recorded</span><strong>{money.format(selectedActual / 1000)}</strong><small>{selectedActual <= selectedPlanned ? 'On track' : 'Over budget'}</small></article>
-              <article className="stat-card ink"><div className="stat-icon"><CircleDollarSign /></div><span>Remaining</span><strong>{money.format((selectedPlanned - selectedActual) / 1000)}</strong><small>{selectedPlanned ? 'Of planned' : 'Plan first'}</small></article>
+              <article className="stat-card terracotta"><div className="stat-icon"><WalletCards /></div><span>Recorded</span><strong>{money.format(selectedAmount / 1000)}</strong><small>{selectedExpenses.length} items this month</small></article>
+              <article className="stat-card moss"><div className="stat-icon"><ReceiptText /></div><span>36-month total</span><strong>{money.format(rollingAmount / 1000)}</strong><small>rolling window</small></article>
+              <article className="stat-card ink"><div className="stat-icon"><CircleDollarSign /></div><span>Remaining</span><strong>{selectedSalary ? money.format(selectedBalance / 1000) : '—'}</strong><small>{selectedSalary ? 'vs salary' : 'No salary set'}</small></article>
             </div>
           )}
 
           {viewMode === 'salary' ? (
             <article className="ledger-card">
-              <div className="ledger-header"><div><span className="section-kicker">SALARY BREAKDOWN</span><h3>Expense details</h3></div><div className="ledger-total">Balance <strong>{money.format(selectedBalance / 100)}</strong></div></div>
+              <div className="ledger-header"><div><span className="section-kicker">SALARY BREAKDOWN</span><h3>Expense details</h3></div><div className="ledger-total">Balance <strong>{money.format(selectedBalance / 1000)}</strong></div></div>
               {loading ? (
                 <div className="state-panel"><LoaderCircle className="spinner" /><h3>Opening your ledger</h3><p>Gathering the next 36 months.</p></div>
               ) : selectedExpenses.length === 0 ? (
@@ -426,7 +406,7 @@ useEffect(() => {
                     <div className="expense-row" key={expense.id}>
                       <div className="category-dot" style={{ background: categoryColors[expense.category] ?? categoryColors.Other }} />
                       <div className="expense-name"><strong>{expense.name}</strong><span>{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
-                      <div className="expense-number"><span>Amount</span><strong>{money.format(expense.actualCents / 100)}</strong></div>
+                      <div className="expense-number"><span>Amount</span><strong>{money.format(expense.amountCents / 1000)}</strong></div>
                       <div className="row-actions"><button aria-label={`Edit ${expense.name}`} onClick={() => openEditExpense(expense)}><Edit3 size={16} /></button><button aria-label={`Delete ${expense.name}`} onClick={() => void deleteExpense(expense.id)}><Trash2 size={16} /></button></div>
                     </div>
                   ))}
@@ -435,26 +415,21 @@ useEffect(() => {
             </article>
           ) : (
             <article className="ledger-card">
-              <div className="ledger-header"><div><span className="section-kicker">MONTHLY LEDGER</span><h3>Expense details</h3></div><div className="ledger-total">Actual <strong>{money.format(selectedActual / 1000)}</strong></div></div>
+              <div className="ledger-header"><div><span className="section-kicker">MONTHLY LEDGER</span><h3>Expense details</h3></div><div className="ledger-total">Total <strong>{money.format(selectedAmount / 1000)}</strong></div></div>
               {loading ? (
                 <div className="state-panel"><LoaderCircle className="spinner" /><h3>Opening your ledger</h3><p>Gathering the next 36 months.</p></div>
               ) : selectedExpenses.length === 0 ? (
                 <div className="state-panel empty-state"><div className="empty-icon"><HomeIcon /></div><h3>This month is a clean page</h3><p>Start with a regular cost such as rent, grocery, electricity.</p></div>
               ) : (
                 <div className="expense-list">
-                  {selectedExpenses.map((expense) => {
-                    const difference = expense.plannedCents - expense.actualCents
-                    return (
-                      <div className="expense-row" key={expense.id}>
-                        <div className="category-dot" style={{ background: categoryColors[expense.category] ?? categoryColors.Other }} />
-                        <div className="expense-name"><strong>{expense.name}</strong><span>{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
-                        <div className="expense-number"><span>Planned</span><strong>{money.format(expense.plannedCents / 100)}</strong></div>
-                        <div className="expense-number"><span>Actual</span><strong>{money.format(expense.actualCents / 1000)}</strong></div>
-                        <div className={difference >= 0 ? 'variance good' : 'variance over'}>{difference >= 0 ? <Check size={14} /> : <ArrowUpRight size={14} />}{difference >= 0 ? `${money.format(difference / 100)}` : `${money.format(Math.abs(difference) / 100)}`}</div>
-                        <div className="row-actions"><button aria-label={`Edit ${expense.name}`} onClick={() => openEditExpense(expense)}><Edit3 size={16} /></button><button aria-label={`Delete ${expense.name}`} onClick={() => void deleteExpense(expense.id)}><Trash2 size={16} /></button></div>
-                      </div>
-                    )
-                  })}
+                  {selectedExpenses.map((expense) => (
+                    <div className="expense-row" key={expense.id}>
+                      <div className="category-dot" style={{ background: categoryColors[expense.category] ?? categoryColors.Other }} />
+                      <div className="expense-name"><strong>{expense.name}</strong><span>{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
+                      <div className="expense-number"><span>Amount</span><strong>{money.format(expense.amountCents / 1000)}</strong></div>
+                      <div className="row-actions"><button aria-label={`Edit ${expense.name}`} onClick={() => openEditExpense(expense)}><Edit3 size={16} /></button><button aria-label={`Delete ${expense.name}`} onClick={() => void deleteExpense(expense.id)}><Trash2 size={16} /></button></div>
+                    </div>
+                  ))}
                 </div>
               )}
             </article>
@@ -463,15 +438,15 @@ useEffect(() => {
 
         <aside className="side-column">
           <article className="progress-card">
-            <span className="section-kicker">{viewMode === 'salary' ? 'SALARY PACE' : 'MONTHLY PACE'}</span><div className="progress-heading"><h3>{Math.round(viewMode === 'salary' ? salaryRatio : actualRatio)}%</h3><span>{viewMode === 'salary' ? 'used' : 'used'}</span></div>
-            <div className="progress-track"><span style={{ width: `${viewMode === 'salary' ? salaryRatio : actualRatio}%` }} /></div>
-            <p>{viewMode === 'salary' ? (selectedSalary ? `${money.format(Math.abs(selectedBalance) / 1000)} ${selectedBalance >= 0 ? 'remaining' : 'over your salary'}.` : 'Set your base salary above.') : (selectedPlanned ? `${money.format(Math.abs(selectedPlanned - selectedActual) / 100)} ${selectedActual <= selectedPlanned ? 'still available' : 'above your plan'}.` : 'Add planned...')}</p>
+            <span className="section-kicker">SPEND PACE</span><div className="progress-heading"><h3>{Math.round(salaryRatio)}%</h3><span>used</span></div>
+            <div className="progress-track"><span style={{ width: `${salaryRatio}%` }} /></div>
+            <p>{selectedSalary ? `${money.format(Math.abs(selectedBalance) / 1000)} ${selectedBalance >= 0 ? 'remaining' : 'over your salary'}.` : 'Set your base salary above.'}</p>
           </article>
 
           <article className="category-card">
             <div className="card-title-row"><div><span className="section-kicker">WHERE IT WENT</span><h3>By category</h3></div><span>{categoryTotals.length}</span></div>
             {categoryTotals.length ? categoryTotals.map((item) => (
-              <div className="category-line" key={item.category}><i style={{ background: categoryColors[item.category] ?? categoryColors.Other }} /><span>{item.category}</span><strong>{money.format(item.value / 100)}</strong></div>
+              <div className="category-line" key={item.category}><i style={{ background: categoryColors[item.category] ?? categoryColors.Other }} /><span>{item.category}</span><strong>{money.format(item.value / 1000)}</strong></div>
             )) : <p className="muted-copy">Recorded spending appears here by category.</p>}
           </article>
 
@@ -489,7 +464,7 @@ useEffect(() => {
               <label>Month<select value={form.month} onChange={(event) => setForm({ ...form, month: event.target.value })}>{months.map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
               <label>Expense name<input autoFocus placeholder="e.g. Apartment rent" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
               <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
-              <div className="amount-grid"><label>Planned amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.planned} onChange={(event) => setForm({ ...form, planned: event.target.value })} /></div></label><label>Actual amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.actual} onChange={(event) => setForm({ ...form, actual: event.target.value })} /></div></label></div>
+              <label>Amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></div></label>
               <label>Notes <span className="optional">Optional</span><textarea rows={3} placeholder="Payment date, reminder, or detail" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
               {error && <div className="form-error">{error}</div>}
               <div className="drawer-actions"><button type="button" className="outline-button" onClick={() => setDrawerOpen(false)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? <LoaderCircle className="spinner" /> : 'Save expense'}</button></div>
