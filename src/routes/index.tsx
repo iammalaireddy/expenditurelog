@@ -464,7 +464,7 @@ function Home() {
               <label>Month<select value={form.month} onChange={(event) => setForm({ ...form, month: event.target.value })}>{months.map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
               <label>Expense name<input autoFocus placeholder="e.g. Apartment rent" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
               <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
-              <label>Amount<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></div></label>
+              <label>Amount<div className="money-input"><span>KWD</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></div></label>
               <label>Notes <span className="optional">Optional</span><textarea rows={3} placeholder="Payment date, reminder, or detail" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
               {error && <div className="form-error">{error}</div>}
               <div className="drawer-actions"><button type="button" className="outline-button" onClick={() => setDrawerOpen(false)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? <LoaderCircle className="spinner" /> : 'Save expense'}</button></div>
@@ -479,7 +479,7 @@ function Home() {
             <div className="drawer-top"><div><span className="section-kicker">{salaryForm.id ? 'UPDATE SALARY' : 'ADD SALARY'}</span><h2 id="salary-drawer-title">{salaryForm.id ? 'Edit salary' : 'Set salary'}</h2></div><button onClick={() => setSalaryDrawerOpen(false)}><X size={20} /></button></div>
             <form onSubmit={(event) => void saveSalary(event)}>
               <label>Month<select value={salaryForm.month} onChange={(event) => setSalaryForm({ ...salaryForm, month: event.target.value })}>{months.map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
-              <label>Base salary<div className="money-input"><span>$</span><input type="number" min="0" step="0.001" placeholder="0.000" autoFocus value={salaryForm.baseSalary} onChange={(event) => setSalaryForm({ ...salaryForm, baseSalary: event.target.value })} /></div></label>
+              <label>Base salary<div className="money-input"><span>KWD</span><input type="number" min="0" step="0.001" placeholder="0.000" autoFocus value={salaryForm.baseSalary} onChange={(event) => setSalaryForm({ ...salaryForm, baseSalary: event.target.value })} /></div></label>
               {error && <div className="form-error">{error}</div>}
               <div className="drawer-actions"><button type="button" className="outline-button" onClick={() => setSalaryDrawerOpen(false)}>Cancel</button><button className="primary-button" disabled={savingSalary}>{savingSalary ? <LoaderCircle className="spinner" /> : 'Save salary'}</button></div>
             </form>
