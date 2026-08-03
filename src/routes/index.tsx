@@ -116,14 +116,16 @@ function emptySalaryForm(month: string): SalaryForm {
 
 function Home() {
   const months = useMemo(() => {
-    const start = new Date()
-    start.setDate(1)
-    return Array.from({ length: 36 }, (_, index) => {
-      const date = new Date(start.getFullYear(), start.getMonth() + index, 1)
-      return toMonthKey(date)
-    })
-  }, [])
-  const [selectedMonth, setSelectedMonth] = useState(months[0])
+  const start = new Date()
+  start.setDate(1)
+  start.setMonth(start.getMonth() - 24)
+
+  return Array.from({ length: 60 }, (_, index) => {
+    const date = new Date(start.getFullYear(), start.getMonth() + index, 1)
+    return toMonthKey(date)
+  })
+}, [])
+  const [selectedMonth, setSelectedMonth] = useState('')
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [salaries, setSalaries] = useState<Record<string, Salary>>({})
   const [form, setForm] = useState<ExpenseForm>(() => emptyForm(months[0]))
@@ -140,9 +142,9 @@ function Home() {
     const loadData = async () => {
       try {
         const [expensesRes, salariesRes] = await Promise.all([
-          fetch(`/api/expenses?start=${months[0]}&end=${months[35]}`),
-          fetch(`/api/salaries?start=${months[0]}&end=${months[35]}`),
-        ])
+  fetch(`/api/expenses?start=${months[0]}&end=${months[months.length - 1]}`),
+  fetch(`/api/salaries?start=${months[0]}&end=${months[months.length - 1]}`),
+])
         if (!expensesRes.ok) throw new Error('Unable to load your expense plan.')
         if (!salariesRes.ok) throw new Error('Unable to load salaries.')
         const expensesData = ((await expensesRes.json()) as Expense[]).map((expense) => ({
@@ -164,7 +166,19 @@ function Home() {
     }
     void loadData()
   }, [months])
+useEffect(() => {
+  if (!expenses.length || selectedMonth) return
 
+  const latestMonth = [...new Set(expenses.map((e) => e.month))]
+    .sort()
+    .pop()
+
+  if (latestMonth) {
+    setSelectedMonth(latestMonth)
+    setForm(emptyForm(latestMonth))
+    setSalaryForm(emptySalaryForm(latestMonth))
+  }
+}, [expenses, selectedMonth])
   const selectedExpenses = expenses.filter((expense) => expense.month === selectedMonth)
   const selectedPlanned = selectedExpenses.reduce((sum, expense) => sum + expense.plannedCents, 0)
   const selectedActual = selectedExpenses.reduce((sum, expense) => sum + expense.actualCents, 0)
