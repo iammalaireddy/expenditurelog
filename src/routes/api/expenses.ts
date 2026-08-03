@@ -8,15 +8,14 @@ type ExpenseInput = {
   month?: string
   category?: string
   name?: string
-  plannedCents?: number
-  actualCents?: number
+  amountCents?: number
   notes?: string
 }
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/
 
 function validAmount(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0
 }
 
 export const Route = createFileRoute('/api/expenses')({
@@ -44,10 +43,9 @@ export const Route = createFileRoute('/api/expenses')({
           !monthPattern.test(input.month) ||
           !input.category?.trim() ||
           !input.name?.trim() ||
-          !validAmount(input.plannedCents) ||
-          !validAmount(input.actualCents)
+          !validAmount(input.amountCents)
         ) {
-          return Response.json({ error: 'Enter a valid month, name, category, and amounts.' }, { status: 400 })
+          return Response.json({ error: 'Enter a valid month, name, category, and amount.' }, { status: 400 })
         }
 
         const now = new Date()
@@ -57,8 +55,7 @@ export const Route = createFileRoute('/api/expenses')({
             month: input.month,
             category: input.category.trim(),
             name: input.name.trim(),
-            plannedAmount: String(input.plannedCents),
-            actualAmount: String(input.actualCents),
+            amountCents: input.amountCents,
             notes: input.notes?.trim() ?? '',
             createdAt: now,
             updatedAt: now,
@@ -75,8 +72,7 @@ export const Route = createFileRoute('/api/expenses')({
           !monthPattern.test(input.month) ||
           !input.category?.trim() ||
           !input.name?.trim() ||
-          !validAmount(input.plannedCents) ||
-          !validAmount(input.actualCents)
+          !validAmount(input.amountCents)
         ) {
           return Response.json({ error: 'Enter a valid expense before saving.' }, { status: 400 })
         }
@@ -87,8 +83,7 @@ export const Route = createFileRoute('/api/expenses')({
             month: input.month,
             category: input.category.trim(),
             name: input.name.trim(),
-            plannedAmount: String(input.plannedCents),
-            actualAmount: String(input.actualCents),
+            amountCents: input.amountCents,
             notes: input.notes?.trim() ?? '',
             updatedAt: new Date(),
           })
