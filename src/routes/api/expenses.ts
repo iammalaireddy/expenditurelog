@@ -16,7 +16,7 @@ type ExpenseInput = {
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/
 
 function validAmount(value: unknown) {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 0
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
 }
 
 export const Route = createFileRoute('/api/expenses')({
