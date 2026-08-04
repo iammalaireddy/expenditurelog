@@ -135,7 +135,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .amount-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .money-input { position: relative; }
 .money-input span { position: absolute; left: 13px; top: 19px; color: var(--ink-soft); font-size: 13px; }
-.money-input input { padding-left: 28px; }
+.money-input input { padding-left: 48px; }
 .optional { float: right; font-weight: 400; }
 .drawer-actions { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; margin-top: 8px; }
 .form-error { border: 1px solid #ebc0b5; border-radius: 9px; padding: 10px 12px; color: #9e3e28; background: #fff0ec; font-size: 11px; }
