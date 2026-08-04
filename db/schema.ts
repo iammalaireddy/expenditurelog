@@ -19,6 +19,13 @@ export const salaries = sqliteTable('salaries', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 })
 
+export const notes = sqliteTable('notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  content: text('content').notNull().default(''),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+})
+
 export type Expense = typeof expenses.$inferSelect
 export type NewExpense = typeof expenses.$inferInsert
 export type Salary = typeof salaries.$inferSelect

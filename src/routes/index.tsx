@@ -132,6 +132,8 @@ function Home() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingSalary, setSavingSalary] = useState(false)
+  const [savingNotes, setSavingNotes] = useState(false)
+  const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
   const [viewMode, setViewMode] = useState<'expenses' | 'salary'>('expenses')
 
@@ -162,6 +164,19 @@ function Home() {
       }
     }
     void loadData()
+
+    const loadNotes = async () => {
+      try {
+        const notesRes = await fetch('/api/notes')
+        if (notesRes.ok) {
+          const notesData = (await notesRes.json()) as { content?: string }
+          setNotes(notesData.content ?? '')
+        }
+      } catch {
+        setNotes('')
+      }
+    }
+    void loadNotes()
   }, [months])
 
   const selectedExpenses = expenses.filter((expense) => expense.month === selectedMonth)
@@ -183,6 +198,38 @@ function Home() {
       .filter((item) => item.value > 0)
       .sort((left, right) => right.value - left.value)
   }, [selectedExpenses])
+
+  const calendarDays = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number)
+    const firstWeekday = new Date(year, month - 1, 1).getDay()
+    const daysInMonth = new Date(year, month, 0).getDate()
+    const today = new Date()
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const cells: Array<{ day: number | null; key: string; isToday: boolean }> = []
+    for (let index = 0; index < firstWeekday; index++) cells.push({ day: null, key: `blank-${index}`, isToday: false })
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      cells.push({ day, key: dateKey, isToday: dateKey === todayKey })
+    }
+    return cells
+  }, [selectedMonth])
+
+  const saveNotes = async () => {
+    setSavingNotes(true)
+    setError('')
+    try {
+      const response = await fetch('/api/notes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: notes }),
+      })
+      if (!response.ok) throw new Error('Unable to save your reminder.')
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to save your reminder.')
+    } finally {
+      setSavingNotes(false)
+    }
+  }
 
   const openNewExpense = (category = 'Rent') => {
     setForm({ ...emptyForm(selectedMonth), category })
@@ -448,6 +495,22 @@ function Home() {
             {categoryTotals.length ? categoryTotals.map((item) => (
               <div className="category-line" key={item.category}><i style={{ background: categoryColors[item.category] ?? categoryColors.Other }} /><span>{item.category}</span><strong>{money.format(item.value / 1000)}</strong></div>
             )) : <p className="muted-copy">Recorded spending appears here by category.</p>}
+          </article>
+
+          <article className="reminder-card">
+            <div className="card-title-row"><div><span className="section-kicker">REMINDERS</span><h3>Notes &amp; reminders</h3></div></div>
+            <div className="mini-calendar">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, index) => (
+                <div className="mini-calendar-head" key={`${label}-${index}`}>{label}</div>
+              ))}
+              {calendarDays.map((cell) => (
+                <div key={cell.key} className={cell.isToday ? 'mini-calendar-day today' : cell.day === null ? 'mini-calendar-day empty' : 'mini-calendar-day'}>
+                  {cell.day ?? ''}
+                </div>
+              ))}
+            </div>
+            <textarea className="notes-input" rows={4} placeholder="Reminders… e.g. Electricity bill due on the 15th" value={notes} onChange={(event) => setNotes(event.target.value)} />
+            <button className="primary-button compact reminder-save" disabled={savingNotes} onClick={() => void saveNotes()}>{savingNotes ? <LoaderCircle className="spinner" /> : 'Save reminder'}</button>
           </article>
 
           <article className="quick-card">
