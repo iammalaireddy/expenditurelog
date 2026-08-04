@@ -131,6 +131,15 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .mini-calendar-day.today { background: var(--terracotta); color: #fff; font-weight: 700; box-shadow: 0 4px 10px rgba(169, 63, 36, .25); }
 .notes-input { width: 100%; margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; color: var(--ink); background: #fffdf8; font-size: 12px; line-height: 1.5; resize: vertical; }
 .reminder-save { margin-top: 10px; width: 100%; }
+.note-input-row { display: flex; gap: 8px; margin-top: 12px; }
+.note-input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--ink); background: #fffdf8; font-size: 12px; }
+.note-add { padding: 10px 13px; }
+.note-list { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.note-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fffdf8; }
+.note-row span { flex: 1; min-width: 0; font-size: 12px; line-height: 1.5; }
+.note-row button { width: 26px; height: 26px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--ink-soft); cursor: pointer; }
+.note-row button:hover { color: var(--terracotta); background: #f1e8de; }
+.note-empty { margin: 12px 0 0; }
 
 .drawer-layer { position: fixed; inset: 0; z-index: 30; display: flex; justify-content: end; background: rgba(29,38,35,.4); backdrop-filter: blur(4px); animation: fadeIn .2s ease; }
 .expense-drawer { width: min(100%, 480px); height: 100%; padding: 30px; overflow-y: auto; background: #faf7f0; box-shadow: -20px 0 50px rgba(19,28,24,.18); animation: slideIn .3s cubic-bezier(.2,.8,.2,1); }

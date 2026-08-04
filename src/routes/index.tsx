@@ -34,6 +34,12 @@ type Salary = {
   baseSalaryCents: number
 }
 
+type Note = {
+  id: number
+  content: string
+  createdAt: string
+}
+
 type ExpenseForm = Omit<Expense, 'id' | 'amountCents'> & {
   id?: number
   amount: string
@@ -133,7 +139,8 @@ function Home() {
   const [saving, setSaving] = useState(false)
   const [savingSalary, setSavingSalary] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
-  const [notes, setNotes] = useState('')
+  const [notes, setNotes] = useState<Note[]>([])
+  const [newNote, setNewNote] = useState('')
   const [error, setError] = useState('')
   const [viewMode, setViewMode] = useState<'expenses' | 'salary'>('expenses')
 
@@ -169,11 +176,10 @@ function Home() {
       try {
         const notesRes = await fetch('/api/notes')
         if (notesRes.ok) {
-          const notesData = (await notesRes.json()) as { content?: string }
-          setNotes(notesData.content ?? '')
+          setNotes((await notesRes.json()) as Note[])
         }
       } catch {
-        setNotes('')
+        setNotes([])
       }
     }
     void loadNotes()
@@ -214,20 +220,35 @@ function Home() {
     return cells
   }, [selectedMonth])
 
-  const saveNotes = async () => {
+  const addNote = async () => {
+    if (!newNote.trim()) return
     setSavingNotes(true)
     setError('')
     try {
       const response = await fetch('/api/notes', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: notes }),
+        body: JSON.stringify({ content: newNote }),
       })
-      if (!response.ok) throw new Error('Unable to save your reminder.')
+      const result = (await response.json()) as Note | { error: string }
+      if (!response.ok) throw new Error('error' in result ? result.error : 'Unable to save your reminder.')
+      setNotes((current) => [result as Note, ...current])
+      setNewNote('')
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to save your reminder.')
     } finally {
       setSavingNotes(false)
+    }
+  }
+
+  const deleteNote = async (id: number) => {
+    if (!window.confirm('Delete this reminder?')) return
+    try {
+      const response = await fetch(`/api/notes?id=${id}`, { method: 'DELETE' })
+      if (!response.ok) throw new Error('Unable to delete this reminder.')
+      setNotes((current) => current.filter((note) => note.id !== id))
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to delete this reminder.')
     }
   }
 
@@ -509,8 +530,22 @@ function Home() {
                 </div>
               ))}
             </div>
-            <textarea className="notes-input" rows={4} placeholder="Reminders… e.g. Electricity bill due on the 15th" value={notes} onChange={(event) => setNotes(event.target.value)} />
-            <button className="primary-button compact reminder-save" disabled={savingNotes} onClick={() => void saveNotes()}>{savingNotes ? <LoaderCircle className="spinner" /> : 'Save reminder'}</button>
+            <div className="note-input-row">
+              <input className="note-input" placeholder="Add a reminder… e.g. Electricity bill due on the 15th" value={newNote} onChange={(event) => setNewNote(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void addNote() }} />
+              <button className="primary-button compact note-add" disabled={savingNotes} onClick={() => void addNote()}>{savingNotes ? <LoaderCircle className="spinner" /> : <Plus size={15} />}</button>
+            </div>
+            {notes.length ? (
+              <ul className="note-list">
+                {notes.map((note) => (
+                  <li className="note-row" key={note.id}>
+                    <span>{note.content}</span>
+                    <button aria-label="Delete reminder" onClick={() => void deleteNote(note.id)}><Trash2 size={14} /></button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted-copy note-empty">No reminders yet. Add one above.</p>
+            )}
           </article>
 
           <article className="quick-card">

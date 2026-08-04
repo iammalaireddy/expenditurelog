@@ -7,20 +7,27 @@ export const Route = createFileRoute('/api/notes')({
   server: {
     handlers: {
       GET: async () => {
-        const [row] = await db.select().from(notes).orderBy(asc(notes.id)).limit(1)
-        return Response.json({ content: row?.content ?? '' })
+        const rows = await db.select().from(notes).orderBy(asc(notes.createdAt), asc(notes.id))
+        return Response.json(rows)
       },
-      PUT: async ({ request }) => {
+      POST: async ({ request }) => {
         const input = (await request.json()) as { content?: string }
-        const content = typeof input.content === 'string' ? input.content.slice(0, 5000) : ''
-        const now = new Date()
-        const existing = await db.select({ id: notes.id }).from(notes).orderBy(asc(notes.id)).limit(1)
-        if (existing[0]) {
-          await db.update(notes).set({ content, updatedAt: now }).where(eq(notes.id, existing[0].id))
-        } else {
-          await db.insert(notes).values({ content, createdAt: now, updatedAt: now })
+        const content = typeof input.content === 'string' ? input.content.trim().slice(0, 5000) : ''
+        if (!content) {
+          return Response.json({ error: 'Enter a reminder first.' }, { status: 400 })
         }
-        return Response.json({ content })
+        const now = new Date()
+        const [created] = await db.insert(notes).values({ content, createdAt: now, updatedAt: now }).returning()
+        return Response.json(created, { status: 201 })
+      },
+      DELETE: async ({ request }) => {
+        const id = Number(new URL(request.url).searchParams.get('id'))
+        if (!Number.isInteger(id) || id < 1) {
+          return Response.json({ error: 'A valid note ID is required.' }, { status: 400 })
+        }
+        const [deleted] = await db.delete(notes).where(eq(notes.id, id)).returning({ id: notes.id })
+        if (!deleted) return Response.json({ error: 'Note not found.' }, { status: 404 })
+        return Response.json(deleted)
       },
     },
   },
