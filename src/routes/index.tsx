@@ -59,7 +59,7 @@ const categories = [
   'Transport',
   'Grocery',
   'Shopping',
-  'Entertainment',
+  'Activities & Entertainment',
   'Healthcare',
   'Subscriptions',
   'Food',
@@ -74,7 +74,7 @@ const categoryColors: Record<string, string> = {
   Transport: '#387780',
   Grocery: '#558b6e',
   Shopping: '#b55478',
-  Entertainment: '#4f6d9a',
+  'Activities & Entertainment': '#4f6d9a',
   Healthcare: '#b04b4b',
   Subscriptions: '#68737d',
   Food: '#F59E0B',
@@ -82,7 +82,7 @@ const categoryColors: Record<string, string> = {
 }
 
 function normalizeCategory(category: string) {
-  return category === 'Activities' ? 'Entertainment' : category
+  return category === 'Activities' || category === 'Entertainment' ? 'Activities & Entertainment' : category
 }
 
 const money = new Intl.NumberFormat('en-US', {
