@@ -14,7 +14,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Threefold — 36 Month Expense Planner',
+        title: 'Budget Buddy — 36 Month Expense Planner',
       },
       {
         name: 'description',

@@ -381,7 +381,7 @@ function Home() {
       <header className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark"><TrendingUp size={21} /></div>
-          <div><strong>THREEFOLD</strong><span>36-month household planner</span></div>
+          <div><strong>Budget Buddy</strong><span>36-month household planner</span></div>
         </div>
         <div className="horizon-pill"><CalendarDays size={16} /> {monthLabel(months[0], 'short')} — {monthLabel(months[35], 'short')}</div>
         <div style={{ display: 'flex', gap: '8px' }}>
