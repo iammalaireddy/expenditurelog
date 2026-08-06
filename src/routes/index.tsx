@@ -85,6 +85,84 @@ function normalizeCategory(category: string) {
   return category === 'Activities' || category === 'Entertainment' ? 'Activities & Entertainment' : category
 }
 
+const quotes = [
+  { text: 'A family that plans together, grows together.', by: 'Budget Buddy' },
+  { text: 'Home is where the matcha flows.', by: 'The Family Ledger' },
+  { text: 'Small savings today, big memories tomorrow.', by: 'Budget Buddy' },
+  { text: 'Slow mornings, strong budgets.', by: 'Cozy Finance' },
+  { text: 'Dream big, spend small.', by: 'The Family Ledger' },
+  { text: 'Where there is love, there is a home — and a grocery list.', by: 'Budget Buddy' },
+  { text: 'Plant the seeds today, harvest the sunshine tomorrow.', by: 'Matcha & Mochi' },
+  { text: 'Everything looks brighter with a little self-love and a budget.', by: 'Cozy Finance' },
+]
+
+const today = new Date()
+const startOfYear = new Date(today.getFullYear(), 0, 0)
+const dayIndex = Math.floor((today.getTime() - startOfYear.getTime()) / 86400000)
+const dailyQuote = quotes[dayIndex % quotes.length]
+
+const quoteArt = (
+  <svg className="quote-art" viewBox="0 0 400 160" role="img" aria-label="Pastel illustration of a cozy home at sunrise">
+    <defs>
+      <linearGradient id="qa-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#fdf0ee" />
+        <stop offset="100%" stopColor="#fef7ec" />
+      </linearGradient>
+      <linearGradient id="qa-hillBack" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#cfe0bc" />
+        <stop offset="100%" stopColor="#b5c9a0" />
+      </linearGradient>
+      <linearGradient id="qa-hillFront" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#f3d9c6" />
+        <stop offset="100%" stopColor="#ecc9b2" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="160" fill="url(#qa-sky)" />
+    <circle cx="332" cy="38" r="34" fill="none" stroke="#f5dfa4" strokeWidth="3" opacity=".45" />
+    <circle cx="332" cy="38" r="25" fill="#f5dfa4" />
+    <g transform="translate(72 44) rotate(45)" fill="#f3a6b5">
+      <rect x="-3" y="-3" width="6" height="6" />
+      <circle cx="-2" cy="-2" r="3" />
+      <circle cx="2" cy="-2" r="3" />
+    </g>
+    <g transform="translate(298 84) rotate(45)" fill="#f9d7db">
+      <rect x="-2" y="-2" width="4" height="4" />
+      <circle cx="-1.4" cy="-1.4" r="2" />
+      <circle cx="1.4" cy="-1.4" r="2" />
+    </g>
+    <path d="M42 70 l3 -8 3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 Z" fill="#eedaac" opacity=".9" />
+    <path d="M0 124 Q 80 82 170 118 T 400 112 L 400 160 L 0 160 Z" fill="url(#qa-hillBack)" opacity=".85" />
+    <path d="M0 146 Q 120 104 260 140 T 400 136 L 400 160 L 0 160 Z" fill="url(#qa-hillFront)" />
+    <path d="M238 102 q3 -5 0 -9 q4 -4 0 -8" stroke="#e79aa8" strokeWidth="2.4" fill="none" strokeLinecap="round" opacity=".7" />
+    <g transform="translate(230 132)">
+      <rect x="-18" y="-10" width="36" height="22" rx="3" fill="#fff" stroke="#e79aa8" strokeWidth="2" />
+      <path d="M-23 -10 L0 -30 L23 -10 Z" fill="#dd7f96" />
+      <rect x="-4" y="2" width="8" height="10" rx="2" fill="#e5b964" />
+    </g>
+    <g transform="translate(50 150)">
+      <circle cx="0" cy="-3" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="3" cy="0" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="0" cy="3" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="-3" cy="0" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="0" cy="0" r="1.8" fill="#eedaac" />
+    </g>
+    <g transform="translate(72 144)">
+      <circle cx="0" cy="-3" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="3" cy="0" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="0" cy="3" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="-3" cy="0" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="0" cy="0" r="1.8" fill="#eedaac" />
+    </g>
+    <g transform="translate(352 150)">
+      <circle cx="0" cy="-3" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="3" cy="0" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="0" cy="3" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="-3" cy="0" r="2.4" fill="#f9d7db" stroke="#e79aa8" strokeWidth="1" />
+      <circle cx="0" cy="0" r="1.8" fill="#eedaac" />
+    </g>
+  </svg>
+)
+
 const money = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'KWD',
@@ -396,6 +474,14 @@ function Home() {
           <div className="eyebrow"><Sparkles size={14} /> YOUR ROLLING MONEY MAP</div>
           <h1>See the month.<br /><em>Shape the years.</em></h1>
           <p>{viewMode === 'expenses' ? 'Plan the essentials, record what you spend, and keep the next 36 months in view.' : 'Enter your base salary and track remaining balance after expenses.'}</p>
+          <article className="quote-card">
+            {quoteArt}
+            <div className="quote-body">
+              <div className="quote-mark" aria-hidden="true">&#8220;</div>
+              <blockquote>{dailyQuote.text}</blockquote>
+              <div className="quote-by">&mdash; {dailyQuote.by}</div>
+            </div>
+          </article>
         </div>
         <div className="hero-summary">
           <div className="summary-label">{viewMode === 'expenses' ? '36-month outlook' : 'Rolling salary'}</div>
