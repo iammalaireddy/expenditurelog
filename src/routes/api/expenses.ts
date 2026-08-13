@@ -6,6 +6,7 @@ import { expenses } from '../../../db/schema.js'
 type ExpenseInput = {
   id?: number
   month?: string
+  date?: string
   category?: string
   name?: string
   amountCents?: number
@@ -13,9 +14,14 @@ type ExpenseInput = {
 }
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/
+const datePattern = /^\d{4}-\d{2}-\d{2}$/
 
 function validAmount(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0
+}
+
+function validDate(value: unknown) {
+  return typeof value === 'string' && datePattern.test(value)
 }
 
 export const Route = createFileRoute('/api/expenses')({
@@ -53,6 +59,7 @@ export const Route = createFileRoute('/api/expenses')({
           .insert(expenses)
           .values({
             month: input.month,
+            date: input.date && validDate(input.date) ? input.date : '',
             category: input.category.trim(),
             name: input.name.trim(),
             amountCents: input.amountCents,
@@ -81,6 +88,7 @@ export const Route = createFileRoute('/api/expenses')({
           .update(expenses)
           .set({
             month: input.month,
+            date: input.date && validDate(input.date) ? input.date : '',
             category: input.category.trim(),
             name: input.name.trim(),
             amountCents: input.amountCents,

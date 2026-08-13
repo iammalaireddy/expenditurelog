@@ -3,6 +3,7 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 export const expenses = sqliteTable('expenses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   month: text('month').notNull(),
+  date: text('date').notNull().default(''),
   category: text('category').notNull(),
   name: text('name').notNull(),
   amountCents: integer('amount_cents').notNull().default(0),

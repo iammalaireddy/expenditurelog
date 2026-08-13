@@ -22,6 +22,7 @@ export const Route = createFileRoute('/')({ component: Home })
 type Expense = {
   id: number
   month: string
+  date: string
   category: string
   name: string
   amountCents: number
@@ -182,13 +183,24 @@ function monthLabel(month: string, format: 'short' | 'long' = 'long') {
   }).format(new Date(year, monthNumber - 1, 1))
 }
 
+function toDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function formatEntryDate(value: string) {
+  if (!value) return ''
+  const [year, month, day] = value.split('-').map(Number)
+  if (!year || !month || !day) return ''
+  return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' }).format(new Date(year, month - 1, day))
+}
+
 function amountToFils(value: string) {
   const amount = Number(value || 0)
   return Number.isFinite(amount) ? Math.max(0, Math.round(amount * 1000)) : 0
 }
 
 function emptyForm(month: string): ExpenseForm {
-  return { month, category: 'Rent', name: '', amount: '', notes: '' }
+  return { month, date: toDateKey(new Date()), category: 'Rent', name: '', amount: '', notes: '' }
 }
 
 function emptySalaryForm(month: string): SalaryForm {
@@ -340,6 +352,7 @@ function Home() {
     setForm({
       id: expense.id,
       month: expense.month,
+      date: expense.date,
       category: expense.category,
       name: expense.name,
       amount: (expense.amountCents / 1000).toString(),
@@ -410,6 +423,7 @@ function Home() {
     const payload = {
       id: form.id,
       month: form.month,
+      date: form.date,
       category: form.category,
       name: form.name,
       amountCents: amountToFils(form.amount),
@@ -559,7 +573,7 @@ function Home() {
                   {selectedExpenses.map((expense) => (
                     <div className="expense-row" key={expense.id}>
                       <div className="category-dot" style={{ background: categoryColors[expense.category] ?? categoryColors.Other }} />
-                      <div className="expense-name"><strong>{expense.name}</strong><span>{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
+                      <div className="expense-name"><strong>{expense.name}</strong><span>{expense.date ? `${formatEntryDate(expense.date)} · ` : ''}{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
                       <div className="expense-number"><span>Amount</span><strong>{money.format(expense.amountCents / 1000)}</strong></div>
                       <div className="row-actions"><button aria-label={`Edit ${expense.name}`} onClick={() => openEditExpense(expense)}><Edit3 size={16} /></button><button aria-label={`Delete ${expense.name}`} onClick={() => void deleteExpense(expense.id)}><Trash2 size={16} /></button></div>
                     </div>
@@ -579,7 +593,7 @@ function Home() {
                   {selectedExpenses.map((expense) => (
                     <div className="expense-row" key={expense.id}>
                       <div className="category-dot" style={{ background: categoryColors[expense.category] ?? categoryColors.Other }} />
-                      <div className="expense-name"><strong>{expense.name}</strong><span>{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
+                      <div className="expense-name"><strong>{expense.name}</strong><span>{expense.date ? `${formatEntryDate(expense.date)} · ` : ''}{expense.category}{expense.notes ? ` · ${expense.notes}` : ''}</span></div>
                       <div className="expense-number"><span>Amount</span><strong>{money.format(expense.amountCents / 1000)}</strong></div>
                       <div className="row-actions"><button aria-label={`Edit ${expense.name}`} onClick={() => openEditExpense(expense)}><Edit3 size={16} /></button><button aria-label={`Delete ${expense.name}`} onClick={() => void deleteExpense(expense.id)}><Trash2 size={16} /></button></div>
                     </div>
@@ -646,6 +660,7 @@ function Home() {
             <div className="drawer-top"><div><span className="section-kicker">{form.id ? 'UPDATE RECORD' : 'ADD TO YOUR PLAN'}</span><h2 id="drawer-title">{form.id ? 'Edit expense' : 'New expense'}</h2></div><button onClick={() => setDrawerOpen(false)}><X size={20} /></button></div>
             <form onSubmit={(event) => void saveExpense(event)}>
               <label>Month<select value={form.month} onChange={(event) => setForm({ ...form, month: event.target.value })}>{months.map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
+              <label>Date<input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} /></label>
               <label>Expense name<input autoFocus placeholder="e.g. Apartment rent" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
               <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
               <label>Amount<div className="money-input"><span>KWD</span><input type="number" min="0" step="0.001" placeholder="0.000" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></div></label>
