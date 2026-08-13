@@ -55,21 +55,25 @@ export const Route = createFileRoute('/api/expenses')({
         }
 
         const now = new Date()
-        const [created] = await db
-          .insert(expenses)
-          .values({
-            month: input.month,
-            date: input.date && validDate(input.date) ? input.date : '',
-            category: input.category.trim(),
-            name: input.name.trim(),
-            amountCents: input.amountCents,
-            notes: input.notes?.trim() ?? '',
-            createdAt: now,
-            updatedAt: now,
-          })
-          .returning()
+        try {
+          const [created] = await db
+            .insert(expenses)
+            .values({
+              month: input.month,
+              date: input.date && validDate(input.date) ? input.date : '',
+              category: input.category.trim(),
+              name: input.name.trim(),
+              amountCents: input.amountCents,
+              notes: input.notes?.trim() ?? '',
+              createdAt: now,
+              updatedAt: now,
+            })
+            .returning()
 
-        return Response.json(created, { status: 201 })
+          return Response.json(created, { status: 201 })
+        } catch (caught) {
+          return Response.json({ error: `Insert failed: ${caught instanceof Error ? caught.message : String(caught)}` }, { status: 500 })
+        }
       },
       PATCH: async ({ request }) => {
         const input = (await request.json()) as ExpenseInput
@@ -84,22 +88,26 @@ export const Route = createFileRoute('/api/expenses')({
           return Response.json({ error: 'Enter a valid expense before saving.' }, { status: 400 })
         }
 
-        const [updated] = await db
-          .update(expenses)
-          .set({
-            month: input.month,
-            date: input.date && validDate(input.date) ? input.date : '',
-            category: input.category.trim(),
-            name: input.name.trim(),
-            amountCents: input.amountCents,
-            notes: input.notes?.trim() ?? '',
-            updatedAt: new Date(),
-          })
-          .where(eq(expenses.id, input.id))
-          .returning()
+        try {
+          const [updated] = await db
+            .update(expenses)
+            .set({
+              month: input.month,
+              date: input.date && validDate(input.date) ? input.date : '',
+              category: input.category.trim(),
+              name: input.name.trim(),
+              amountCents: input.amountCents,
+              notes: input.notes?.trim() ?? '',
+              updatedAt: new Date(),
+            })
+            .where(eq(expenses.id, input.id))
+            .returning()
 
-        if (!updated) return Response.json({ error: 'Expense not found.' }, { status: 404 })
-        return Response.json(updated)
+          if (!updated) return Response.json({ error: 'Expense not found.' }, { status: 404 })
+          return Response.json(updated)
+        } catch (caught) {
+          return Response.json({ error: `Update failed: ${caught instanceof Error ? caught.message : String(caught)}` }, { status: 500 })
+        }
       },
       DELETE: async ({ request }) => {
         const id = Number(new URL(request.url).searchParams.get('id'))
